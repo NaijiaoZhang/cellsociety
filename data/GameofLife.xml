@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Cellular_automata CellType="GameOfLife">
+	<width>500</width>
+	<height>500</height>
+	<cells_row>25</cells_row>
+	<cells_column>25</cells_column>
+	<prob_alive>75</prob_alive>
+</Cellular_automata>
