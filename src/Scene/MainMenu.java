@@ -6,6 +6,7 @@ import java.util.ResourceBundle;
 import CellularAutomata.CellularAutomata;
 import CellularAutomata.CellularAutomataFactory;
 import XMLParser.XMLParser;
+import XMLParser.XMLParserException;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;
@@ -13,6 +14,8 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
@@ -20,22 +23,22 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 public class MainMenu {
-	public static final String STYLESHEET="../resources/menustyles.css";
-	
-	private File animationXML; 
+	public static final String STYLESHEET = "../resources/menustyles.css";
+
+	private File animationXML;
 	private GridPane myRoot;
 	private Scene myScene;
-    private AnimationScene myAnimation;
-    private ResourceBundle myResources; 
-	
-    public MainMenu () {
-        // TODO Auto-generated constructor stub
-    }
+	private AnimationScene myAnimation;
+	private ResourceBundle myResources;
 
-    public Scene init(int width,int height,ResourceBundle resources){
-    	final FileChooser fileChooser = new FileChooser(); 
-    	myResources=resources; 
-    	myRoot = new GridPane();
+	public MainMenu() {
+		// TODO Auto-generated constructor stub
+	}
+
+	public Scene init(int width, int height, ResourceBundle resources) {
+		final FileChooser fileChooser = new FileChooser();
+		myResources = resources;
+		myRoot = new GridPane();
 		myRoot.setAlignment(Pos.CENTER);
 		myRoot.setHgap(10);
 		myRoot.setVgap(10);
@@ -43,52 +46,72 @@ public class MainMenu {
 
 		myScene = new Scene(myRoot, width, height);
 		myScene.getStylesheets().add(STYLESHEET);
-		
+
 		Label programName = new Label(myResources.getString("AppTitle"));
 		Button fetchXML = new Button(myResources.getString("XMLSelect"));
 		Button startAnimation = new Button(myResources.getString("Start"));
-		
+
 		fetchXML.setOnAction(new EventHandler<ActionEvent>() {
-					
+
 			@Override
-			public void handle(final ActionEvent event){
+			public void handle(final ActionEvent event) {
 				Stage mainStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-				animationXML = fileChooser.showOpenDialog(mainStage);	
-				fetchXML.setText(animationXML.toString());
+				animationXML = fileChooser.showOpenDialog(mainStage);
+				try {
+					if (animationXML == null) {
+						throw new BadFileException();
+					}
+					fetchXML.setText(animationXML.toString());
+				} catch (BadFileException e) {
+					animationXML = new File(fetchXML.getText());
+				}
 			}
 		});
-		
+
 		startAnimation.setOnAction(new EventHandler<ActionEvent>() {
-			
-            @Override
-			public void handle(final ActionEvent event){
-				XMLParser parser = new XMLParser(animationXML.toString()); 
-				CellularAutomata animationType = createSimulation(parser.getCAType(),parser);
-				if(animationType!=null){
-					myAnimation=new AnimationScene(myScene,animationType,myRoot,myResources, height);
-					myScene.setRoot(myAnimation.getRoot());
+
+			@Override
+			public void handle(final ActionEvent event) {
+				try {
+					XMLParser parser = new XMLParser(animationXML.toString());
+					try {
+						CellularAutomata animationType = createSimulation(parser.getCAType(), parser);
+						if (animationType == null) {
+							throw new BadFileException();
+						}
+						myAnimation = new AnimationScene(myScene, animationType, myRoot, myResources, height);
+						myScene.setRoot(myAnimation.getRoot());
+					} catch (BadFileException e) {
+						showError("SimError");
+					}
+				} catch (XMLParserException | NullPointerException e) {
+					showError("XMLError");
 				}
-				else{
-				    System.out.println("error");
-				}
+
 			}
 		});
-		
-		
+
 		myRoot.add(programName, 1, 1);
 		myRoot.add(fetchXML, 1, 2);
 		myRoot.add(startAnimation, 1, 3);
-		
-	        GridPane.setHalignment(programName,HPos.CENTER);
-	        GridPane.setHalignment(fetchXML,HPos.CENTER);
-	        GridPane.setHalignment(startAnimation,HPos.CENTER);
 
-		return myScene; 
-    }
-    
-    //selects which simulation to run/which set of rules to follow
-    private CellularAutomata createSimulation(String simulationname,XMLParser parser){
-       CellularAutomataFactory simulationCreator = new CellularAutomataFactory(simulationname,parser); 
-       return simulationCreator.decideAndCreateCA();
-    }
+		GridPane.setHalignment(programName, HPos.CENTER);
+		GridPane.setHalignment(fetchXML, HPos.CENTER);
+		GridPane.setHalignment(startAnimation, HPos.CENTER);
+
+		return myScene;
+	}
+
+	// selects which simulation to run/which set of rules to follow
+	private CellularAutomata createSimulation(String simulationname, XMLParser parser) {
+		CellularAutomataFactory simulationCreator = new CellularAutomataFactory(simulationname, parser);
+		return simulationCreator.decideAndCreateCA();
+	}
+
+	private void showError(String message) {
+		Alert alert = new Alert(AlertType.ERROR);
+		alert.setTitle(message);
+		alert.setContentText(myResources.getString(message));
+		alert.showAndWait();
+	}
 }

@@ -2,9 +2,10 @@ package Scene;
 
 import java.util.ResourceBundle;
 
+
 import Cell.Cell;
-import Cell.StateColor;
 import CellularAutomata.CellularAutomata;
+import CellularAutomata.PredatorPreyRules;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.event.ActionEvent;
@@ -48,7 +49,7 @@ public class AnimationScene {
     private HBox controls;
     private Button backButton, resetButton, playButton, stepButton, stopButton, speedButton, slowButton;
     private int gridHeight, gridWidth, cellRows, cellCols, cellWidth, cellHeight, mainHeight;
-    private Cell [][] myGrid, originalGrid;
+    private Cell [][] myGrid;
     private int ms;
     private int msDelay;
     private int runAnimation; //0 for don't run, 1 for keep running, 2 for run once
@@ -155,20 +156,9 @@ public class AnimationScene {
     //Moves one step forward in simulation
     private void update(){
         myAutomata.update();
+        myGrid = myAutomata.getGrid();
         display();
     }   
-    
-    //used to create copy of original board and reset
-    private Cell[][] cloneGrid(Cell[][] a){
-        Cell[][] b = new Cell[a.length][a[0].length];
-        for (int i = 0; i < a.length; i++) {
-            for (int j = 0; j < a[0].length; j++) {
-                Cell tempCell=a[i][j];
-                b[i][j]=new Cell(new StateColor(tempCell.getState(),tempCell.getColor()),tempCell.getX(),tempCell.getY(),tempCell.getRow(),tempCell.getCol());
-            }
-        }
-        return b;
-    }
 
     /*
      * BUTTON FUNCTIONALITY
@@ -215,11 +205,11 @@ public class AnimationScene {
         anim.getKeyFrames().add(frame);
         anim.play();
     }
-    
+    ;
     //reset grid
     private void reset(){
             runAnimation=0;
-            myAutomata.setGrid(cloneGrid(originalGrid));
+            myAutomata.reset();
             myGrid=myAutomata.getGrid();
             display();
     }
@@ -239,7 +229,6 @@ public class AnimationScene {
     //sets initialization state and variables of grid
     private void setGridParameters(){
         myGrid=myAutomata.getGrid();
-        originalGrid=cloneGrid(myGrid);
         cellRows=myGrid.length;
         cellCols=myGrid[0].length;
         gridHeight=myAutomata.getHeight();

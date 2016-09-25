@@ -4,56 +4,46 @@ import java.util.*;
 import Cell.Cell;
 
 public abstract class CellularAutomata {
-	private Cell[][] Grid, startGrid;
-	private int width;
-	private int height;
-	private int rowCount;
-	private int colCount;
+	protected Cell[][] grid,startGrid;
+	protected int width;
+	protected int height;
+	protected int rowCount;
+	protected int colCount;
 
-	public CellularAutomata(int rows, int columns, int wid, int hei) {
-		Grid = new Cell[rows][columns];
-		width = wid;
-		height = hei;
-		rowCount = rows;
-		colCount = columns;
-		// TODO Auto-generated constructor stub
-	}
+	public abstract void update();
+	
+        public void reset(){
+            grid=cloneGrid(startGrid);
+        }    
 
-	public CellularAutomata() {
-		this(25, 25, 500, 500);
-	}
+        public void setGrid(Cell[][] g) {
+                grid = g;
+        }
 
-	public Cell[][] step() {
-		return Grid;
-	}
+        public Cell[][] getGrid() {
+                return grid;
+        }
 
-	public List<Cell> checkNeighborsDiagonal(Cell cell) {
+        public int getWidth() {
+                return width;
+        }
+
+        public int getHeight() {
+                return height;
+        }
+	       
+	public List<Cell> checkNeighborsAll(Cell cell) {
 		int i = cell.getRow();
 		int j = cell.getCol();
+		int[] a = {-1,-1,-1,0,0,1,1,1};
+		int[] b = {-1,0,1,-1,1,-1,0,1};
 		List<Cell> neighbors = new ArrayList<Cell>();
-		if (i > 0) {
-			neighbors.add(Grid[i - 1][j]);
-			if (j > 0) {
-				neighbors.add(Grid[i - 1][j - 1]);
-			}
-			if (j < rowCount - 1) {
-				neighbors.add(Grid[i - 1][j + 1]);
-			}
-		}
-		if (j > 0) {
-			neighbors.add(Grid[i][j - 1]);
-		}
-		if (j < rowCount - 1) {
-			neighbors.add(Grid[i][j + 1]);
-		}
-		if (i < colCount - 1) {
-			neighbors.add(Grid[i + 1][j]);
-			if (j > 0) {
-				neighbors.add(Grid[i + 1][j - 1]);
-			}
-			if (j < rowCount - 1) {
-				neighbors.add(Grid[i + 1][j + 1]);
-			}
+		for(int z = 0; z<8; z++){
+		    int x = a[z]+i;
+		    int y = b[z]+j;
+		    if(x>=0 && y>=0 && y<colCount && x<rowCount){
+		        neighbors.add(grid[x][y]);
+		    }
 		}
 		return neighbors;
 	}
@@ -63,35 +53,30 @@ public abstract class CellularAutomata {
 		int j = cell.getCol();
 		List<Cell> neighbors = new ArrayList<Cell>();
 		if (i > 0) {
-			neighbors.add(Grid[i - 1][j]);
+			neighbors.add(grid[i - 1][j]);
 		}
 		if (j > 0) {
-			neighbors.add(Grid[i][j - 1]);
+			neighbors.add(grid[i][j - 1]);
 		}
 		if (j < rowCount - 1) {
-			neighbors.add(Grid[i][j + 1]);
+			neighbors.add(grid[i][j + 1]);
 		}
 		if (i < colCount - 1) {
-			neighbors.add(Grid[i + 1][j]);
+			neighbors.add(grid[i + 1][j]);
 		}
 		return neighbors;
 	}
 
-	public abstract void update();
-
-	public void setGrid(Cell[][] g) {
-		Grid = g;
-	}
-
-	public Cell[][] getGrid() {
-		return Grid;
-	}
-
-	public int getWidth() {
-		return width;
-	}
-
-	public int getHeight() {
-		return height;
-	}
+	
+	//used to create copy of original board and reset
+        public Cell[][] cloneGrid(Cell[][] a){
+            Cell[][] b = new Cell[a.length][a[0].length];
+            for (int i = 0; i < a.length; i++) {
+                for (int j = 0; j < a[0].length; j++) {
+                    Cell tempCell=a[i][j];
+                    b[i][j]=new Cell(tempCell.getState(),tempCell.getColor(),tempCell.getX(),tempCell.getY(),tempCell.getRow(),tempCell.getCol());
+                }
+            }
+            return b;
+        }
 }

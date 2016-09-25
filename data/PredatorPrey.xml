@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Cellular_automata CellType="PredatorPrey">
+	<width>500</width>
+	<height>500</height>
+	<cells_row>50</cells_row>
+	<cells_column>50</cells_column>
+	<shark_energy>5</shark_energy>
+	<shark_reproduce>7</shark_reproduce>
+	<fish_reproduce>5</fish_reproduce>
+	<empty>70</empty>
+	<shark_prob>30</shark_prob>
+</Cellular_automata>

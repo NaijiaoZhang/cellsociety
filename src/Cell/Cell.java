@@ -3,33 +3,28 @@ package Cell;
 import javafx.scene.paint.Color;
 
 public class Cell {
-    private StateColor stateColor;
-    private int xPosition,yPosition;
-    private int row;
-    private int col;
+    protected int xPosition,yPosition;
+    protected int row;
+    protected int col;
+    protected int state;
+    protected Color color;
     
-    public Cell (StateColor sc, int x, int y, int r, int c) {
-        setStateandColor(sc);
+    public Cell (int i, Color clr, int x, int y, int r, int c) {
+        state = i;
+        color = clr;
         xPosition = x;
         yPosition = y;
         row = r;
         col = c;
     }
     
-    public Cell(StateColor sc){
-        this(sc,0,0,0,0);
+    public Cell(int i,Color c){
+        this(i,c,0,0,0,0);
     }
     
     public void setStateandColor(int i, Color c){
-        stateColor.setStateandColor(i, c);        
-    }
-    
-    public void setStateandColor(StateColor sc){
-        stateColor = sc;        
-    }
-    
-    public StateColor getStateandColor(){
-        return stateColor;
+        state = i;
+        color = c;
     }
     
     public int getX(){
@@ -39,13 +34,25 @@ public class Cell {
     public int getY(){
         return yPosition;
     }
-
+    
     public int getState(){
-        return stateColor.getState();
+        return state;
+    }
+    
+    public void setState(int i){
+        state = i;
+    }
+    
+    public void increaseState(int i){
+        state += i;
+    }
+    
+    public void increaseState(){
+        increaseState(1);
     }
     
     public Color getColor(){
-        return stateColor.getColor();
+        return color;
     }
     
     public int getRow(){
