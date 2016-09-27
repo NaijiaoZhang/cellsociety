@@ -2,6 +2,7 @@ package CellularAutomata;
 
 import java.util.*;
 import Cell.Cell;
+import Cell.HexagonalCell;
 
 public abstract class CellularAutomata {
 	protected Cell[][] grid,startGrid;
@@ -70,7 +71,30 @@ public abstract class CellularAutomata {
 	
 	//used to create copy of original board and reset
         public Cell[][] cloneGrid(Cell[][] a){
-            Cell[][] b = new Cell[a.length][a[0].length];
+            if(a[0][0] instanceof HexagonalCell){
+            	return cloneHexagonal(a);
+            }
+            else{
+            	return cloneSquare(a); 
+            }
+        	
+        	
+        }
+        
+        private HexagonalCell[][] cloneHexagonal(Cell[][]a){
+        	HexagonalCell[][]b = new HexagonalCell[a.length][a[0].length];
+        	for(int i=0;i<a.length;i++){
+        		for(int j=0;j<a[0].length;j++){
+            		HexagonalCell tempCell = (HexagonalCell)a[i][j];
+            		b[i][j]= new HexagonalCell(tempCell.getRow(),tempCell.getCol(),tempCell.getSide());
+        		}
+        	}
+        	return b; 
+        }
+        
+        
+        private Cell[][] cloneSquare(Cell[][]a){
+        	Cell[][] b = new Cell[a.length][a[0].length];
             for (int i = 0; i < a.length; i++) {
                 for (int j = 0; j < a[0].length; j++) {
                     Cell tempCell=a[i][j];

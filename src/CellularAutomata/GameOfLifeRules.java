@@ -1,5 +1,7 @@
 package CellularAutomata;
 import Cell.Cell;
+import Cell.HexagonalCell;
+
 import java.util.*;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
@@ -9,14 +11,16 @@ public class GameOfLifeRules extends CellularAutomata{
     private final Color death = Color.BLACK; 
     private final Color alive = Color.WHITE; 
     private int probAlive;
+    private String tileType; 
         
-    public GameOfLifeRules (int rows,int columns,int wid,int hei,int aliveProb){
-        height=hei;
+    public GameOfLifeRules (int rows,int columns,int wid,int hei,int aliveProb, String tile ){
+        tileType = tile; 
+    	height=hei;
         width=wid;
         rowCount=rows;
         colCount=columns;
         probAlive=aliveProb;
-        Randomize();
+        placeCells();
         startGrid=cloneGrid(grid);
     }
 
@@ -37,10 +41,8 @@ public class GameOfLifeRules extends CellularAutomata{
                 }
             }
         }
-        grid = cloneGrid(gridClone);
-       
+        grid = cloneGrid(gridClone);       
     }
-    
     
     /* (non-Javadoc)
      * Override as rerandomize for game of life
@@ -48,11 +50,34 @@ public class GameOfLifeRules extends CellularAutomata{
      */
     @Override
     public void reset(){
-        Randomize();
+        placeCells();
     }
     
-    private void Randomize(){
-        Random r = new Random();
+    private void placeCells(){
+        if(tileType.equals("Square")){
+        	createSquareGrid();
+        }
+        else if(tileType.equals("Hexagonal")){
+        	System.out.println("here");
+        	createHexagonalGrid(); 
+        }
+    }
+    
+    private void createHexagonalGrid(){
+        grid = new HexagonalCell[rowCount][colCount];
+        double side = 0;
+    	if(rowCount%2==0&&colCount%2==0){
+    		side = height/(rowCount/2)/Math.sqrt(3);
+    	}
+    	for(int i=0;i<grid.length;i++){
+    		for(int j=0;j<grid.length;j++){
+    			grid[i][j]=new HexagonalCell(i,j,side);
+    		}
+    	}
+    }
+    
+    private void createSquareGrid(){
+    	Random r = new Random();
         grid = new Cell[rowCount][colCount];
         int w = width/colCount;
         int h = height/rowCount;
@@ -78,5 +103,4 @@ public class GameOfLifeRules extends CellularAutomata{
         }
         return live;
     }
-
 }

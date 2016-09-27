@@ -7,8 +7,7 @@ import javafx.scene.paint.Color;
 
 
 public class PredatorPreyRules extends CellularAutomata {
-    private int sharkReproduce; 
-    private int fishReproduce;
+    private int sharkReproduce, fishReproduce, maxsE, emptyCount, sharkProbCount;
     private final Color shark = Color.RED; 
     private final Color free = Color.BLUE; 
     private final Color fish = Color.LIGHTGREEN; 
@@ -20,26 +19,46 @@ public class PredatorPreyRules extends CellularAutomata {
         colCount=columns;
         sharkReproduce = sR;
         fishReproduce = fR;
-       
+        maxsE=sE;
+        
+        emptyCount = empty*rowCount*colCount/100;
+        sharkProbCount = sharkProb*(rowCount*colCount-emptyCount)/100;
+        
+        placeCells();
+        startGrid=cloneGrid(grid);
+    }
+
+    @Override
+    public void update () {
+    	resetMovement(); 
+    	moveAllFish();
+    	moveAllSharks();    	
+    }    
+    
+    @Override
+    public void reset(){
+        placeCells();
+    }
+    
+    private void placeCells(){
         List<Cell> cellStart = new ArrayList<Cell>();
-        int w = width/columns;
-        int h = height/rows;
-        empty = empty*rows*columns/100;
-        sharkProb = sharkProb*(rows*columns -empty)/100;
-        for(int i = 0; i < rows*columns; i++){
-            if(i<empty){
-                cellStart.add(new PredatorPreyCell(0,free,sE));
-            }else if(i < empty + sharkProb){
-                cellStart.add(new PredatorPreyCell(1,shark,sE));
-            }else{	
-                cellStart.add(new PredatorPreyCell(2,fish,sE));
+        int w = width/colCount;
+        int h = height/rowCount;
+
+        for(int i = 0; i < rowCount*colCount; i++){
+            if(i<emptyCount){
+                cellStart.add(new PredatorPreyCell(0,free,maxsE));
+            }else if(i < emptyCount + sharkProbCount){
+                cellStart.add(new PredatorPreyCell(1,shark,maxsE));
+            }else{      
+                cellStart.add(new PredatorPreyCell(2,fish,maxsE));
             }
         }
         
         Random r = new Random();
-        grid = new Cell[rows][columns];
-        for (int i = 0; i < rows; i++){
-            for(int j = 0; j<columns; j++){
+        grid = new Cell[rowCount][colCount];
+        for (int i = 0; i < rowCount; i++){
+            for(int j = 0; j<colCount; j++){
                 int randNum = r.nextInt(cellStart.size());
                 Cell c = cellStart.get(randNum);
                 c.setRowandCol(i, j);
@@ -48,40 +67,7 @@ public class PredatorPreyRules extends CellularAutomata {
                 cellStart.remove(randNum);
             }
         }
-        startGrid=cloneGrid(grid);
     }
-
-    @Override
-    public void update () {
-    	resetMovement(); 
-    	moveAllFish();
-    	
-    }
-    	
-    	
-        //Cell[][] gridClone = cloneGrid(grid);
-
-//        for (int i = 0; i < grid.length; i++){
-//            for(int j = 0; j<grid[0].length; j++){
-//                Cell[] fishAndFree = adjFish(grid[i][j]);
-//                if(fishAndFree[1] != null &&  (grid[i][j].getState() != sharkEnergy || 
-//                                               grid[i][j].getState() != 0 || 
-//                                               grid[i][j].getState() != sharkEnergy + fishReproduce )){
-//                    grid[i][j].setStateandColor(0,free);
-//                    grid[fishAndFree[1].getRow()][fishAndFree[1].getCol()].setStateandColor(grid[i][j].getState(),grid[i][j].getColor());
-//                }else if(grid[i][j].getState() == sharkEnergy){
-//                    grid[i][j].setStateandColor(0,free);
-//                }else if(grid[i][j].getState() == sharkEnergy+fishReproduce && fishAndFree[1] != null){
-//                    grid[i][j].setStateandColor(sharkEnergy+1,fish);
-//                    grid[fishAndFree[1].getRow()][fishAndFree[1].getCol()].setStateandColor(sharkEnergy+1,fish);
-//                }else if(fishAndFree[0] != null && grid[i][j].getState() <= sharkEnergy && grid[i][j].getState() != 0){
-//                    grid[fishAndFree[0].getRow()][fishAndFree[0].getCol()].setStateandColor(0,free);
-//                }else if(grid[i][j].getState() != 0){
-//                    grid[i][j].increaseState();
-//                }
-//            }
-//        }
-    
 
     private void moveAllFish(){
     	for(int i=0;i<grid.length;i++){
@@ -93,6 +79,15 @@ public class PredatorPreyRules extends CellularAutomata {
     	}
     }
     
+    private void moveAllSharks(){
+        for(int i=0;i<grid.length;i++){
+            for(int j=0;j<grid[0].length;j++){
+                    if(grid[i][j].getState()==1&&!((PredatorPreyCell)grid[i][j]).getHasMoved()){
+                            moveSharks(grid[i][j]);
+                    }
+            }
+        }
+    }    
     
     private void resetMovement(){
     	for(int i=0;i<grid.length;i++){
@@ -122,6 +117,7 @@ public class PredatorPreyRules extends CellularAutomata {
     		Cell selected = empty.get(r.nextInt(empty.size()));
     		if(((PredatorPreyCell)cell).getMoveNum()<fishReproduce){
     			grid[cell.getRow()][cell.getCol()]=new PredatorPreyCell(0,free,cell.getX(),cell.getY(),cell.getRow(),cell.getCol(),-1);
+    			((PredatorPreyCell)(grid[cell.getRow()][cell.getCol()])).setHasMoved(true);
     			grid[selected.getRow()][selected.getCol()]=cell; 
     			cell.setXandY(selected.getX(), selected.getY());
     			cell.setRowandCol(selected.getRow(), selected.getCol());
@@ -137,21 +133,58 @@ public class PredatorPreyRules extends CellularAutomata {
     	}
     }
     
-//    private Cell[] adjFish(Cell cell){
-//        List<Cell> neighbors = checkNeighborsCardinal(cell);
-//        Random r = new Random();
-//        Cell[] fishAndFree = new Cell[2];
-//        List<Cell> freeSpace = new ArrayList<Cell>();
-//        for(Cell c : neighbors){
-//            if(c.getState() > sharkEnergy){
-//                fishAndFree[0] = c;
-//            }else if(c.getState() == 0){
-//                freeSpace.add(c);
-//            }
-//        }
-//        if(!freeSpace.isEmpty()){
-//            fishAndFree[1] = freeSpace.get(r.nextInt(freeSpace.size()));
-//        }
-//        return fishAndFree;
-//    }
+    private void moveSharks(Cell cell){
+        //death
+        if(((PredatorPreyCell)cell).getSharkEnergy()<=0){
+            grid[cell.getRow()][cell.getCol()]=new PredatorPreyCell(0,free,cell.getX(),cell.getY(),cell.getRow(),cell.getCol(),-1);
+            return;
+        }
+        
+        ((PredatorPreyCell)cell).setHasMoved(true);
+        ((PredatorPreyCell)cell).decreaseEnergy();
+        ((PredatorPreyCell)cell).moved();
+            
+        List<Cell>neighbors = checkNeighborsCardinal(cell);
+        List<Cell>empty = new ArrayList<>();
+        List<Cell>fish = new ArrayList<>();
+        for(int i=0;i<neighbors.size();i++){
+            if(neighbors.get(i).getState()==0){
+                empty.add(neighbors.get(i));
+            }
+            else if(neighbors.get(i).getState()==2){
+                fish.add(neighbors.get(i));
+            }
+        }        
+
+        Random r=new Random();          
+        if(fish.isEmpty() && !empty.isEmpty()){//moving
+            int randempty=r.nextInt(empty.size());
+            Cell selected=empty.get(randempty);
+            empty.remove(randempty);
+            grid[cell.getRow()][cell.getCol()]=new PredatorPreyCell(0,free,cell.getX(),cell.getY(),cell.getRow(),cell.getCol(),-1);
+            empty.add(grid[cell.getRow()][cell.getCol()]);
+            grid[selected.getRow()][selected.getCol()]=cell; 
+            cell.setXandY(selected.getX(), selected.getY());
+            cell.setRowandCol(selected.getRow(), selected.getCol());
+        }
+        else if(!fish.isEmpty()){//eating
+            int randfish=r.nextInt(fish.size());
+            Cell eaten=fish.get(randfish);
+            grid[eaten.getRow()][eaten.getCol()]=new PredatorPreyCell(0,free,eaten.getX(),eaten.getY(),eaten.getRow(),eaten.getCol(),-1);
+            empty.add(grid[eaten.getRow()][eaten.getCol()]);
+            ((PredatorPreyCell)cell).ate();
+        }
+        
+        //reproduction
+        if(((PredatorPreyCell)cell).getMoveNum()>=sharkReproduce && !empty.isEmpty()){
+            int randempty=r.nextInt(empty.size());
+            Cell selected=neighbors.get(randempty);
+            ((PredatorPreyCell)cell).setMoveNum(0);
+            grid[cell.getRow()][cell.getCol()]=new PredatorPreyCell(1,shark,cell.getX(),cell.getY(),cell.getRow(),cell.getCol(),maxsE);
+            ((PredatorPreyCell)(grid[cell.getRow()][cell.getCol()])).setHasMoved(true);
+            grid[selected.getRow()][selected.getCol()]=cell; 
+            cell.setXandY(selected.getX(), selected.getY());
+            cell.setRowandCol(selected.getRow(), selected.getCol());
+        }
+    }
 }

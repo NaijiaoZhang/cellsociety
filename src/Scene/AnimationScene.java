@@ -4,7 +4,9 @@ import java.util.ResourceBundle;
 
 
 import Cell.Cell;
+import Cell.HexagonalCell;
 import CellularAutomata.CellularAutomata;
+import CellularAutomata.GameOfLifeRules;
 import CellularAutomata.PredatorPreyRules;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -20,6 +22,7 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.RowConstraints;
+import javafx.scene.paint.Color;
 import javafx.util.Duration;
 
 /**
@@ -116,7 +119,29 @@ public class AnimationScene {
     
     //draws grid on canvas
     private void display(){
-        for (int i=0; i<cellCols;i++)
+    	if(myGrid[0][0] instanceof HexagonalCell){
+    		displayHexagonalTiles(); 
+    	}
+    	else if(myGrid[0][0] instanceof Cell){
+    		displaySquareTiles(); 
+    	}
+    }
+    
+    private void displayHexagonalTiles(){
+    	gc.setStroke(Color.BLUE);
+    	gc.setFill(myGrid[0][0].getColor());
+    	for(int i=0;i<myGrid.length;i++){
+    		for(int j=0;j<myGrid[0].length;j++){
+    			if(i%2==0){
+    				gc.strokePolygon(((HexagonalCell)myGrid[i][j]).getXCoordinates(), ((HexagonalCell)myGrid[i][j]).getYCoordinates(), 6);
+    				gc.fillPolygon(((HexagonalCell)myGrid[i][j]).getXCoordinates(), ((HexagonalCell)myGrid[i][j]).getYCoordinates(), 6);
+    			}
+    			}
+    		}
+    }
+    
+    private void displaySquareTiles(){
+    	for (int i=0; i<cellCols;i++)
         {
             for (int h=0; h<cellRows; h++){
                 Cell tempCell=myGrid[i][h];
@@ -228,6 +253,7 @@ public class AnimationScene {
     
     //sets initialization state and variables of grid
     private void setGridParameters(){
+    	System.out.println("here2");
         myGrid=myAutomata.getGrid();
         cellRows=myGrid.length;
         cellCols=myGrid[0].length;

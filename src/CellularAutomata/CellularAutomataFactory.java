@@ -21,7 +21,7 @@ public class CellularAutomataFactory {
 	        case "Segregation":
 	        	return createSegregation();
 	        case "PredatorPrey":
-	        	return createPredatorPrey(); 
+	                return createPredatorPrey();
 	        default:
 	           return null; 
 			}        
@@ -32,7 +32,8 @@ public class CellularAutomataFactory {
         		Integer.parseInt(parser.getVariableValues("cells_column")),
         		Integer.parseInt(parser.getVariableValues("width")),
         		Integer.parseInt(parser.getVariableValues("height")),
-        		Integer.parseInt(parser.getVariableValues("prob_alive")));
+        		Integer.parseInt(parser.getVariableValues("prob_alive")),
+        		parser.getVariableValues("TileType"));
 	}
 	
 	private FireRules createFire(){

@@ -4,18 +4,21 @@ import javafx.scene.paint.Color;
 
 public class PredatorPreyCell extends Cell {
 
+        private int maxsE;
 	private int sharkEnergy;
 	private int moveNum; 
 	private boolean hasMoved;
 	
 	public PredatorPreyCell(int state, Color clr, int xPos, int yPos, int r, int c, int sE) {
-		super(state, clr, xPos, yPos, r, c);		
-		initializeByState(sE);
+		super(state, clr, xPos, yPos, r, c);	
+	        maxsE=sE;
+		initializeByState();
 	}
 	
 	public PredatorPreyCell(int state, Color clr, int sE){
 		super(state,clr);
-		initializeByState(sE);
+		maxsE=sE;
+		initializeByState();
 	}
 	
 	public int getMoveNum() {
@@ -37,19 +40,27 @@ public class PredatorPreyCell extends Cell {
 	public void moved(){
 		moveNum +=1; 
 	}
+	
+	public void ate(){
+	        sharkEnergy=maxsE;
+	}
+	
+	public void decreaseEnergy(){
+	        sharkEnergy-=1;
+	}
 
 	public int getSharkEnergy(){
 		return sharkEnergy;
 	}
-	
-	private void initializeByState(int sE){
+		
+	private void initializeByState(){
 		if(getState()==0){
 			sharkEnergy = -1; 
 			moveNum = 0;
 			hasMoved=false; 
 		}
 		else if(getState()==1){
-			sharkEnergy = sE; 
+			sharkEnergy = maxsE; 
 			moveNum =0;
 			hasMoved=false;
 		}
