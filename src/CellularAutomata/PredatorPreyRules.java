@@ -2,17 +2,26 @@ package CellularAutomata;
 
 import java.util.*;
 import Cell.Cell;
-import Cell.PredatorPreyCell;
+import Cell.HexagonalCell;
+import Cell.SquareCell;
+import Cell.TriangleCell;
+import CellContent.PredatorPreyContent;
+import CellContent.SegregationContent;
+import javafx.scene.chart.XYChart;
+import javafx.scene.chart.XYChart.Series;
 import javafx.scene.paint.Color;
 
 
 public class PredatorPreyRules extends CellularAutomata {
-    private int sharkReproduce, fishReproduce, maxsE, emptyCount, sharkProbCount;
-    private final Color shark = Color.RED; 
-    private final Color free = Color.BLUE; 
-    private final Color fish = Color.LIGHTGREEN; 
+    private int sharkReproduce, fishReproduce, maxsE;
 
-    public PredatorPreyRules (int rows,int columns,int wid,int hei,int sE,int sR, int fR, int empty, int sharkProb) {
+    private Color shark;
+    private Color free;
+    private Color fish;
+    private List<PredatorPreyContent> cellStart;
+    private int steps,fishPopulationSize,sharkPopulationSize; 
+
+    public PredatorPreyRules (int rows,int columns,int wid,int hei,int sE,int sR, int fR, int empty, int sharkProb, String tile, String edge, Color sharkColor, Color fishColor, Color waterColor, String dir) {
         height=hei;
         width=wid;
         rowCount=rows;
@@ -20,171 +29,284 @@ public class PredatorPreyRules extends CellularAutomata {
         sharkReproduce = sR;
         fishReproduce = fR;
         maxsE=sE;
+        tileType=tile;
+        edgeType=edge;
+        shark=sharkColor;
+        fish=fishColor;
+        free=waterColor;
+        neighborDirection=dir;
         
-        emptyCount = empty*rowCount*colCount/100;
-        sharkProbCount = sharkProb*(rowCount*colCount-emptyCount)/100;
+        probEmpty=empty;
+        probType=sharkProb;
+        useProbType=true;
+        useProbEmpty=true;
+        steps = 0;
+        fishPopulationSize=0;
+        sharkPopulationSize=0;
         
+        cellStart=setupCell();
         placeCells();
-        startGrid=cloneGrid(grid);
     }
 
     @Override
     public void update () {
+    	steps++;
     	resetMovement(); 
     	moveAllFish();
     	moveAllSharks();    	
     }    
     
     @Override
-    public void reset(){
+    public void reset () {
+        cellStart = setupCell();
         placeCells();
     }
-    
-    private void placeCells(){
-        List<Cell> cellStart = new ArrayList<Cell>();
-        int w = width/colCount;
-        int h = height/rowCount;
+
+    public List<PredatorPreyContent> setupCell () {
+        int emptyCount = probEmpty * rowCount * colCount / 100;
+        int sharkProbCount = probType * (rowCount * colCount - emptyCount) / 100;
+
+        List<PredatorPreyContent> cells = new ArrayList<PredatorPreyContent>();
 
         for(int i = 0; i < rowCount*colCount; i++){
             if(i<emptyCount){
-                cellStart.add(new PredatorPreyCell(0,free,maxsE));
+                cells.add(new PredatorPreyContent(0,free,-1));
             }else if(i < emptyCount + sharkProbCount){
-                cellStart.add(new PredatorPreyCell(1,shark,maxsE));
+                cells.add(new PredatorPreyContent(1,shark,maxsE));
+                sharkPopulationSize++;
             }else{      
-                cellStart.add(new PredatorPreyCell(2,fish,maxsE));
+                cells.add(new PredatorPreyContent(2,fish,-1));
+                fishPopulationSize++;
             }
         }
-        
+        return cells;
+    }
+
+    public void createSquareGrid () {
+        int w = width / colCount;
+        int h = height / rowCount;
         Random r = new Random();
-        grid = new Cell[rowCount][colCount];
-        for (int i = 0; i < rowCount; i++){
-            for(int j = 0; j<colCount; j++){
+        grid = new TreeMap<Integer, Cell>();
+        for (int i = 0; i < rowCount; i++) {
+            for (int j = 0; j < colCount; j++) {
                 int randNum = r.nextInt(cellStart.size());
-                Cell c = cellStart.get(randNum);
-                c.setRowandCol(i, j);
-                c.setXandY(i*w, j*h);
-                grid[i][j] = c;
+                SquareCell c = new SquareCell(i * w, j * h, i, j, cellStart.get(randNum));
+                grid.put(i + j * rowCount, c);
+                cellStart.remove(randNum);
+            }
+        }
+
+    }
+
+    public void createTriangleGrid () {
+        int w = width / colCount;
+        int h = height / rowCount;
+        Random r = new Random();
+        grid = new TreeMap<Integer, Cell>();
+        for (int i = 0; i < rowCount; i++) {
+            for (int j = 0; j < colCount; j++) {
+                int k = i + j * rowCount;
+                int randNum = r.nextInt(cellStart.size());
+                PredatorPreyContent c = cellStart.get(randNum);
+                grid.put(k, new TriangleCell(i * w, j * h, w, h, i, j, c));
                 cellStart.remove(randNum);
             }
         }
     }
 
-    private void moveAllFish(){
-    	for(int i=0;i<grid.length;i++){
-    		for(int j=0;j<grid[0].length;j++){
-    			if(grid[i][j].getState()==2&&!((PredatorPreyCell)grid[i][j]).getHasMoved()){
-    				moveFish(grid[i][j]);
-    			}
-    		}
-    	}
-    }
-    
-    private void moveAllSharks(){
-        for(int i=0;i<grid.length;i++){
-            for(int j=0;j<grid[0].length;j++){
-                    if(grid[i][j].getState()==1&&!((PredatorPreyCell)grid[i][j]).getHasMoved()){
-                            moveSharks(grid[i][j]);
-                    }
+    public void createHexagonalGrid () {
+        double side = 0;
+        if (rowCount % 2 == 0 && colCount % 2 == 0) {
+            side = height / (rowCount) / Math.sqrt(3);
+        }
+        Random r = new Random();
+        grid = new TreeMap<Integer, Cell>();
+        for (int i = 0; i < rowCount; i++) {
+            for (int j = 0; j < colCount; j++) {
+                int k = i + j * rowCount;
+                int randNum = r.nextInt(cellStart.size());
+                PredatorPreyContent c = cellStart.get(randNum);
+                grid.put(k, new HexagonalCell(i, j, side, c));
+                cellStart.remove(randNum);
             }
         }
-    }    
-    
-    private void resetMovement(){
-    	for(int i=0;i<grid.length;i++){
-    		for(int j=0;j<grid[0].length;j++){
-    			if(grid[i][j].getState()==1||grid[i][j].getState()==2){
-    				((PredatorPreyCell)grid[i][j]).setHasMoved(false);
-    			}
-    		}
-    	}
     }
     
+    public int getSharkReproduce(){
+        return sharkReproduce;
+    }
+    
+    public void setSharkReproduce(int sR){
+        sharkReproduce=sR;
+    }
+    
+    public int getFishReproduce(){
+        return fishReproduce;
+    }
+    
+    public void setFishReproduce(int fR){
+        fishReproduce=fR;
+    }
+    
+    public int getSharkEnergy(){
+        return maxsE;
+    }
+    
+    public void setSharkEnergy(int sE){
+        maxsE=sE;
+    }
+
+    private void moveAllFish () {
+        for (int i = 0; i < grid.keySet().size(); i++) {
+            if (grid.get(i).getContent().getState() == 2 &&
+                !(((PredatorPreyContent) grid.get(i).getContent()).getHasMoved())) {
+                moveFish(grid.get(i));
+            }
+        }
+    }
+
+    private void moveAllSharks () {
+        for (int i = 0; i < grid.keySet().size(); i++) {
+            if (grid.get(i).getContent().getState() == 1 &&
+                !(((PredatorPreyContent) grid.get(i).getContent()).getHasMoved())) {
+                moveSharks(grid.get(i));
+            }
+
+        }
+    }
+
+    private void resetMovement () {
+        for (int i = 0; i < grid.keySet().size(); i++) {
+            if (grid.get(i).getContent().getState() != 0) {
+                ((PredatorPreyContent) grid.get(i).getContent()).setHasMoved(false);
+            }
+
+        }
+    }
     private void moveFish(Cell cell){
-    	((PredatorPreyCell)cell).setHasMoved(true);
-    	List<Cell>neighbors = checkNeighborsCardinal(cell);
+    	((PredatorPreyContent)cell.getContent()).setHasMoved(true);
+    	List<Cell>neighbors = checkNeighbors(cell,false);
     	List<Cell>empty = new ArrayList<>();
     	for(int i=0;i<neighbors.size();i++){
-    		if(neighbors.get(i).getState()==0){
+    		if(neighbors.get(i).getContent().getState()==0){
     			empty.add(neighbors.get(i));
     		}
     	}
     	if(empty.size()==0){
-    		((PredatorPreyCell)cell).moved();
+    	((PredatorPreyContent)cell.getContent()).moved();
     		return;
     	}
     	else{
-    		Random r = new Random();
-    		Cell selected = empty.get(r.nextInt(empty.size()));
-    		if(((PredatorPreyCell)cell).getMoveNum()<fishReproduce){
-    			grid[cell.getRow()][cell.getCol()]=new PredatorPreyCell(0,free,cell.getX(),cell.getY(),cell.getRow(),cell.getCol(),-1);
-    			((PredatorPreyCell)(grid[cell.getRow()][cell.getCol()])).setHasMoved(true);
-    			grid[selected.getRow()][selected.getCol()]=cell; 
-    			cell.setXandY(selected.getX(), selected.getY());
-    			cell.setRowandCol(selected.getRow(), selected.getCol());
-    			((PredatorPreyCell)cell).moved(); 
-    		}
-    		else if(((PredatorPreyCell)cell).getMoveNum()>=fishReproduce){
-    			((PredatorPreyCell)cell).setMoveNum(0);
-    			grid[cell.getRow()][cell.getCol()]=new PredatorPreyCell(2,fish,cell.getX(),cell.getY(),cell.getRow(),cell.getCol(),-1);
-    			grid[selected.getRow()][selected.getCol()]=cell; 
-    			cell.setXandY(selected.getX(), selected.getY());
-    			cell.setRowandCol(selected.getRow(), selected.getCol());
-    		}
+    	    moveOrBreed(cell,empty);
     	}
+    }
+
+    private void moveOrBreed (Cell cell, List<Cell> empty) {
+        Random r = new Random();
+        Cell selected = empty.get(r.nextInt(empty.size())); 
+
+        if(((PredatorPreyContent)cell.getContent()).getMoveNum()<fishReproduce){
+                grid.put(cell.getRow()+cell.getCol()*rowCount,decideShape(cell,0,free,-1));
+                ((PredatorPreyContent)grid.get(cell.getRow()+cell.getCol()*rowCount).getContent()).setHasMoved(true);
+                grid.put(selected.getRow()+selected.getCol()*rowCount,cell); 
+                cell.setRowandCol(selected.getRow(), selected.getCol());
+                cell.setXandY(selected.getX(), selected.getY());
+                ((PredatorPreyContent)cell.getContent()).moved();
+        }
+        else if(((PredatorPreyContent)cell.getContent()).getMoveNum()>=fishReproduce){
+                ((PredatorPreyContent)cell.getContent()).setMoveNum(0);
+                grid.put(cell.getRow()+cell.getCol()*rowCount,decideShape(cell,2,fish,-1));
+                fishPopulationSize++;
+                grid.put(selected.getRow()+selected.getCol()*rowCount,cell);
+                cell.setRowandCol(selected.getRow(), selected.getCol());
+                cell.setXandY(selected.getX(), selected.getY());
+        }
     }
     
     private void moveSharks(Cell cell){
-        //death
-        if(((PredatorPreyCell)cell).getSharkEnergy()<=0){
-            grid[cell.getRow()][cell.getCol()]=new PredatorPreyCell(0,free,cell.getX(),cell.getY(),cell.getRow(),cell.getCol(),-1);
+        if(((PredatorPreyContent)cell.getContent()).getSharkEnergy()<=0){
+            grid.put(cell.getRow()+cell.getCol()*rowCount,decideShape(cell,0,free,-1));
+            sharkPopulationSize--;
             return;
         }
-        
-        ((PredatorPreyCell)cell).setHasMoved(true);
-        ((PredatorPreyCell)cell).decreaseEnergy();
-        ((PredatorPreyCell)cell).moved();
+        ((PredatorPreyContent)cell.getContent()).setHasMoved(true);
+        ((PredatorPreyContent)cell.getContent()).decreaseEnergy();
+        ((PredatorPreyContent)cell.getContent()).moved();
             
-        List<Cell>neighbors = checkNeighborsCardinal(cell);
+        List<Cell>neighbors = checkNeighbors(cell,false);
         List<Cell>empty = new ArrayList<>();
         List<Cell>fish = new ArrayList<>();
         for(int i=0;i<neighbors.size();i++){
-            if(neighbors.get(i).getState()==0){
+            if(neighbors.get(i).getContent().getState()==0){
                 empty.add(neighbors.get(i));
             }
-            else if(neighbors.get(i).getState()==2){
+            else if (neighbors.get(i).getContent().getState() == 2) {
                 fish.add(neighbors.get(i));
             }
-        }        
+        }
 
-        Random r=new Random();          
-        if(fish.isEmpty() && !empty.isEmpty()){//moving
-            int randempty=r.nextInt(empty.size());
-            Cell selected=empty.get(randempty);
+        Random r = new Random();
+        if (fish.isEmpty() && !empty.isEmpty()) {// moving
+            int randempty = r.nextInt(empty.size());
+            Cell selected = empty.get(randempty);
             empty.remove(randempty);
-            grid[cell.getRow()][cell.getCol()]=new PredatorPreyCell(0,free,cell.getX(),cell.getY(),cell.getRow(),cell.getCol(),-1);
-            empty.add(grid[cell.getRow()][cell.getCol()]);
-            grid[selected.getRow()][selected.getCol()]=cell; 
-            cell.setXandY(selected.getX(), selected.getY());
+            grid.put(cell.getRow()+cell.getCol()*rowCount,decideShape(cell,0,free,-1));
+            empty.add(grid.get(cell.getRow()+cell.getCol()*rowCount));
+            grid.put(selected.getRow()+selected.getCol()*rowCount,cell);
             cell.setRowandCol(selected.getRow(), selected.getCol());
+            cell.setXandY(selected.getX(), selected.getY());
         }
         else if(!fish.isEmpty()){//eating
+        	fishPopulationSize--;
             int randfish=r.nextInt(fish.size());
             Cell eaten=fish.get(randfish);
-            grid[eaten.getRow()][eaten.getCol()]=new PredatorPreyCell(0,free,eaten.getX(),eaten.getY(),eaten.getRow(),eaten.getCol(),-1);
-            empty.add(grid[eaten.getRow()][eaten.getCol()]);
-            ((PredatorPreyCell)cell).ate();
+            grid.put(eaten.getRow()+eaten.getCol()*rowCount,decideShape(eaten,0,free,-1));
+            empty.add(grid.get(eaten.getRow()+eaten.getCol()*rowCount));
+            ((PredatorPreyContent)cell.getContent()).ate();
         }
         
         //reproduction
-        if(((PredatorPreyCell)cell).getMoveNum()>=sharkReproduce && !empty.isEmpty()){
+        if(((PredatorPreyContent)cell.getContent()).getMoveNum()>=sharkReproduce && !empty.isEmpty()){
+            sharkPopulationSize++;
             int randempty=r.nextInt(empty.size());
             Cell selected=neighbors.get(randempty);
-            ((PredatorPreyCell)cell).setMoveNum(0);
-            grid[cell.getRow()][cell.getCol()]=new PredatorPreyCell(1,shark,cell.getX(),cell.getY(),cell.getRow(),cell.getCol(),maxsE);
-            ((PredatorPreyCell)(grid[cell.getRow()][cell.getCol()])).setHasMoved(true);
-            grid[selected.getRow()][selected.getCol()]=cell; 
-            cell.setXandY(selected.getX(), selected.getY());
+            ((PredatorPreyContent)cell.getContent()).setMoveNum(0);
+            grid.put(cell.getRow()+cell.getCol()*rowCount,decideShape(cell,1,shark,maxsE));
+            ((PredatorPreyContent)grid.get(cell.getRow()+cell.getCol()*rowCount).getContent()).setHasMoved(true);
+            grid.put(selected.getRow()+selected.getCol()*rowCount,cell);
             cell.setRowandCol(selected.getRow(), selected.getCol());
+            cell.setXandY(selected.getX(), selected.getY());
         }
+    }
+
+    private Cell decideShape (Cell cell, int state, Color col, int sharkE) {
+        if (cell instanceof SquareCell) {
+            return new SquareCell(cell.getX(), cell.getY(), cell.getRow(), cell.getCol(),
+                                  new PredatorPreyContent(state, col, sharkE));
+        }
+        else if (cell instanceof TriangleCell) {
+            return new TriangleCell(cell.getX(), cell.getY(), width / rowCount, height / colCount,
+                                    cell.getRow(), cell.getCol(),
+                                    new PredatorPreyContent(state, col, sharkE));
+        }
+        else {
+            // dont have to do this every time refactor somehow
+            double side = 0;
+            if (rowCount % 2 == 0 && colCount % 2 == 0) {
+                side = height / (rowCount) / Math.sqrt(3);
+            }
+            return new HexagonalCell(cell.getRow(), cell.getCol(), side,
+                                     new PredatorPreyContent(state, col, sharkE));
+        }
+    }
+	@Override
+	public void graphStats(Series<Number, Number> graphLocation) {
+		// TODO Auto-generated method stub
+		graphLocation.getData().add(new XYChart.Data(steps,fishPopulationSize));	
+	}
+	
+        public void graphSharkStats(Series<Number, Number> graphLocation) {
+            // TODO Auto-generated method stub
+            graphLocation.getData().add(new XYChart.Data(steps,sharkPopulationSize));        
     }
 }

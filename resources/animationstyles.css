@@ -23,3 +23,21 @@
 	-fx-position:relative;
 	-fx-top:1px;
 }
+
+.slider{
+	-fx-background-color:#33bdef;
+	-fx-border-radius:37px;
+	-fx-display:inline-block;
+	-fx-cursor:pointer;
+	-fx-color:#0000ff;
+	-fx-padding:1px 5px;
+	-fx-text-decoration:none;
+	-fx-margin-right:100px;
+	-fx-width:100px;
+
+}
+
+.slider .axis .axis-tick-mark {
+    -fx-fill: null;
+    -fx-stroke: blue;
+}

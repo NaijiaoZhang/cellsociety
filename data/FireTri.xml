@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Cellular_automata CellType="GameOfLife">
-	<TileType>Hexagonal</TileType>
+<Cellular_automata CellType="Fire">
+	<TileType>Triangle</TileType>
 	<EdgeType>Finite</EdgeType>
 	<width>500</width>
 	<height>500</height>
 	<cells_row>50</cells_row>
 	<cells_column>50</cells_column>
-	<prob_alive>75</prob_alive>
+	<prob_catch>50</prob_catch>
+	<neighborDirection>cardinal</neighborDirection>
 </Cellular_automata>

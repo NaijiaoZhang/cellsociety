@@ -6,4 +6,7 @@
 	<cells_row>50</cells_row>
 	<cells_column>50</cells_column>
 	<prob_alive>75</prob_alive>
+	<strokeBoolean>true</strokeBoolean>
+	<strokeColor>BLUE</strokeColor>
+	<neighborDirection>all</neighborDirection>
 </Cellular_automata>

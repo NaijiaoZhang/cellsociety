@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Cellular_automata CellType="ForagingAnts">
+	<TileType>Hexagonal</TileType>
+	<width>500</width>
+	<height>500</height>
+	<cells_row>30</cells_row>
+	<cells_column>30</cells_column>
+	<food_X>4</food_X>
+	<food_Y>4</food_Y>
+	<home_X>25</home_X>
+	<home_Y>25</home_Y>
+	<max_ants>1000</max_ants>
+	<max_ants_per_cell>10</max_ants_per_cell>
+	<ant_life>500</ant_life>
+	<initial_ants>2</initial_ants>
+	<ants_spawned>2</ants_spawned>
+	<max_pheromone>1000</max_pheromone>
+	<n>10</n>
+	<k>100</k>
+	<evap>1</evap>
+	<diffuse>1</diffuse>
+	<EdgeType>Finite</EdgeType></Cellular_automata>

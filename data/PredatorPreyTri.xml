@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Cellular_automata CellType="PredatorPrey">
-	<TileType>Square</TileType>
+	<TileType>Triangle</TileType>
 	<EdgeType>Finite</EdgeType>
 	<width>500</width>
 	<height>500</height>
@@ -11,9 +11,5 @@
 	<fish_reproduce>5</fish_reproduce>
 	<empty>70</empty>
 	<shark_prob>30</shark_prob>
-	<shark_color>red</shark_color>
-	<fish_color>green</fish_color>
-	<water_color>blue</water_color>
-	<strokeBoolean>false</strokeBoolean>
 	<neighborDirection>cardinal</neighborDirection>
 </Cellular_automata>

@@ -1,4 +1,4 @@
-package Scene;
+package CellularAutomata;
 
 public class BadFileException extends Exception{
 
@@ -8,5 +8,9 @@ public class BadFileException extends Exception{
 
     public BadFileException (String message) {
         super(message);
+    }
+    
+    public BadFileException (Throwable cause, String message) {
+        super(String.format(message), cause);
     }
 }

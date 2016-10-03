@@ -2,7 +2,7 @@ package Scene;
 
 import java.io.File;
 import java.util.ResourceBundle;
-
+import CellularAutomata.BadFileException;
 import CellularAutomata.CellularAutomata;
 import CellularAutomata.CellularAutomataFactory;
 import XMLParser.XMLParser;
@@ -19,6 +19,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
+import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -30,6 +31,8 @@ public class MainMenu {
 	private Scene myScene;
 	private AnimationScene myAnimation;
 	private ResourceBundle myResources;
+	private boolean strokeBoolean;
+	private Color strokeColor;
 
 	public MainMenu() {
 		// TODO Auto-generated constructor stub
@@ -58,11 +61,8 @@ public class MainMenu {
 				Stage mainStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
 				animationXML = fileChooser.showOpenDialog(mainStage);
 				try {
-					if (animationXML == null) {
-						throw new BadFileException();
-					}
 					fetchXML.setText(animationXML.toString());
-				} catch (BadFileException e) {
+				} catch (NullPointerException e) {
 					animationXML = new File(fetchXML.getText());
 				}
 			}
@@ -72,21 +72,24 @@ public class MainMenu {
 
 			@Override
 			public void handle(final ActionEvent event) {
-				try {
-					XMLParser parser = new XMLParser(animationXML.toString());
+    			        XMLParser parser;
+    			        try {
+    					parser = new XMLParser(animationXML.toString());
+    	                        } 
+    			        catch (XMLParserException | NullPointerException e) {
+                                           showError("XMLError");
+                                   return;
+    	                        }
 					try {
 						CellularAutomata animationType = createSimulation(parser.getCAType(), parser);
 						if (animationType == null) {
 							throw new BadFileException();
 						}
-						myAnimation = new AnimationScene(myScene, animationType, myRoot, myResources, height);
+						myAnimation = new AnimationScene(myScene, animationType, myRoot, myResources, height,strokeBoolean,strokeColor);
 						myScene.setRoot(myAnimation.getRoot());
 					} catch (BadFileException e) {
-						showError("SimError");
 					}
-				} catch (XMLParserException | NullPointerException e) {
-					showError("XMLError");
-				}
+
 
 			}
 		});
@@ -104,7 +107,9 @@ public class MainMenu {
 
 	// selects which simulation to run/which set of rules to follow
 	private CellularAutomata createSimulation(String simulationname, XMLParser parser) {
-		CellularAutomataFactory simulationCreator = new CellularAutomataFactory(simulationname, parser);
+		CellularAutomataFactory simulationCreator = new CellularAutomataFactory(simulationname, parser,myResources);
+		strokeBoolean=simulationCreator.getStrokeBoolean();
+		strokeColor=simulationCreator.getStrokeColor();
 		return simulationCreator.decideAndCreateCA();
 	}
 

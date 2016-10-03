@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Cellular_automata CellType="GameOfLife">
-	<TileType>Hexagonal</TileType>
-	<EdgeType>Finite</EdgeType>
+	<TileType>Square</TileType>
+	<EdgeType>Toroidal</EdgeType>
 	<width>500</width>
 	<height>500</height>
 	<cells_row>50</cells_row>

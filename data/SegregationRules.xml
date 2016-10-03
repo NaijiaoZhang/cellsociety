@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Cellular_automata CellType="Segregation">
+	<TileType>Square</TileType>
+	<EdgeType>Finite</EdgeType>
 	<width>500</width>
 	<height>500</height>
 	<cells_row>50</cells_row>
 	<cells_column>50</cells_column>
 	<empty>20</empty>
-	<similar>30</similar>
+	<similar>75</similar>
 	<red_prob>50</red_prob>
+	<A_color>red</A_color>
+	<B_color>blue</B_color>
+	<empty_color>white</empty_color>
+	<strokeBoolean>true</strokeBoolean>
+	<strokeColor>BLUE</strokeColor>
 </Cellular_automata>

@@ -1,8 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Cellular_automata CellType="Fire">
+	<TileType>Square</TileType>
+	<EdgeType>Finite</EdgeType>
 	<width>500</width>
 	<height>500</height>
 	<cells_row>50</cells_row>
 	<cells_column>50</cells_column>
 	<prob_catch>50</prob_catch>
+	<burning_color>red</burning_color>
+	<burnable_color>green</burnable_color>
+	<burnt_color>yellow</burnt_color>
+	<strokeBoolean>false</strokeBoolean>
+	<neighborDirection>cardinal</neighborDirection>	
 </Cellular_automata>

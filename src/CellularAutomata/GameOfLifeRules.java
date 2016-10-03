@@ -1,106 +1,147 @@
 package CellularAutomata;
 import Cell.Cell;
 import Cell.HexagonalCell;
+import Cell.SquareCell;
+import Cell.TriangleCell;
+import CellContent.GameOfLifeContent;
 
 import java.util.*;
+
+import javafx.scene.chart.XYChart;
+import javafx.scene.chart.XYChart.Series;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 
 public class GameOfLifeRules extends CellularAutomata{
     public static final int SPAWN=3;
-    private final Color death = Color.BLACK; 
-    private final Color alive = Color.WHITE; 
-    private int probAlive;
-    private String tileType; 
+    private Color death; 
+    private Color alive; 
+    private int steps,populationSize; 
         
-    public GameOfLifeRules (int rows,int columns,int wid,int hei,int aliveProb, String tile ){
+    public GameOfLifeRules (int rows,int columns,int wid,int hei,int aliveProb, String tile, String edge,Color deathColor,Color aliveColor, String dir){
         tileType = tile; 
+        edgeType=edge;
     	height=hei;
         width=wid;
         rowCount=rows;
         colCount=columns;
-        probAlive=aliveProb;
+        probType=aliveProb;
+        death=deathColor;
+        alive=aliveColor;
+        probEmpty=0;
+        neighborDirection=dir;
+        useProbType=true;
+        useProbEmpty=false;
         placeCells();
-        startGrid=cloneGrid(grid);
     }
 
     @Override
     public void update () {
-        Cell[][] gridClone = cloneGrid(grid);
-        for (int i = 0; i < grid.length; i++){
-            for(int j = 0; j<grid[0].length; j++){
-                int live = liveNeighbors(grid[i][j]);
-                if(live == SPAWN && grid[i][j].getState() == 0){
-                    gridClone[i][j].setStateandColor(1, alive);
+    	steps++;
+        Map<Integer,Cell> gridClone = cloneGrid(grid);
+        for (int i = 0; i < grid.keySet().size(); i++){
+                int live = liveNeighbors(grid.get(i));
+                if(live == SPAWN && grid.get(i).getContent().getState() == 0){
+                    gridClone.get(i).getContent().setStateandColor(1, alive);
                 }
-                if(live > SPAWN && grid[i][j].getState() == 1){
-                    gridClone[i][j].setStateandColor(0, death);
+                if(live > SPAWN && grid.get(i).getContent().getState() == 1){
+                    gridClone.get(i).getContent().setStateandColor(0, death);
                 }
-                if(live < SPAWN-1 && grid[i][j].getState() == 1){
-                    gridClone[i][j].setStateandColor(0, death);
-                }
+                if(live < SPAWN-1 && grid.get(i).getContent().getState() == 1){
+                    gridClone.get(i).getContent().setStateandColor(0, death);
             }
         }
-        grid = cloneGrid(gridClone);       
+        updatePopulationSize(); 
+        grid = gridClone;       
     }
     
     /* (non-Javadoc)
      * Override as rerandomize for game of life
      * @see CellularAutomata.CellularAutomata#reset()
      */
-    @Override
-    public void reset(){
-        placeCells();
-    }
     
-    private void placeCells(){
-        if(tileType.equals("Square")){
-        	createSquareGrid();
-        }
-        else if(tileType.equals("Hexagonal")){
-        	System.out.println("here");
-        	createHexagonalGrid(); 
-        }
-    }
-    
-    private void createHexagonalGrid(){
-        grid = new HexagonalCell[rowCount][colCount];
+    public void createHexagonalGrid(){
+        Random r = new Random();
+        grid = new TreeMap<Integer,Cell>();
         double side = 0;
     	if(rowCount%2==0&&colCount%2==0){
-    		side = height/(rowCount/2)/Math.sqrt(3);
+    		side = height/(rowCount)/Math.sqrt(3);
     	}
-    	for(int i=0;i<grid.length;i++){
-    		for(int j=0;j<grid.length;j++){
-    			grid[i][j]=new HexagonalCell(i,j,side);
+    	for(int i=0;i<rowCount;i++){
+    		for(int j=0;j<colCount;j++){
+    		    int k = i + j * rowCount;
+                    int randNum = r.nextInt(100);
+                    if(randNum < probType){
+    			grid.put(k, new HexagonalCell(i,j,side,new GameOfLifeContent(0,death)));
+                    }else{
+                        grid.put(k, new HexagonalCell(i,j,side, new GameOfLifeContent(1,alive)));
+                        populationSize++;
+                    }
     		}
     	}
     }
     
-    private void createSquareGrid(){
+    public void createSquareGrid(){
     	Random r = new Random();
-        grid = new Cell[rowCount][colCount];
+        grid = new TreeMap<Integer,Cell>();
         int w = width/colCount;
         int h = height/rowCount;
-        for (int i = 0; i < grid.length; i++){
-            for(int j = 0; j<grid[0].length; j++){
+        for (int i = 0; i < rowCount; i++){
+            for(int j = 0; j<colCount; j++){
+                int k = i + j * rowCount;
                 int randNum = r.nextInt(100);
-                if(randNum < probAlive){
-                    grid[i][j] = new Cell(0,death,i*w,j*h,i,j);
+                if(randNum < probType){
+                    grid.put(k, new SquareCell(i*w,j*h,i,j,new GameOfLifeContent(0,death)));
                 }else{
-                    grid[i][j] = new Cell(1,alive,i*w,j*h,i,j);
+                    grid.put(k, new SquareCell(i*w,j*h,i,j,new GameOfLifeContent(1,alive)));
+                    populationSize++;
                 }
             }
         }
     }
     
+    public void createTriangleGrid(){
+        Random r = new Random();
+        grid = new TreeMap<Integer,Cell>();
+        int w = width/colCount;
+        int h = height/rowCount;
+        for (int i = 0; i < rowCount; i++){
+            for(int j = 0; j<colCount; j++){
+                int k = i + j * rowCount;
+                int randNum = r.nextInt(100);
+                if(randNum < probType){
+                    grid.put(k, new TriangleCell(i*w,j*h,w,h,i,j,new GameOfLifeContent(0,death)));
+                }else{
+                    grid.put(k, new TriangleCell(i*w,j*h,w,h,i,j,new GameOfLifeContent(1,alive)));
+                }
+            }
+        }
+    }
+    
+    private void updatePopulationSize(){
+    	int count = 0; 
+    	for (int i = 0; i < grid.keySet().size(); i++){
+             if(grid.get(i).getContent().getState() == 1){
+                 count++;
+             }
+    	}
+    	populationSize = count;
+    }
+    
     private int liveNeighbors(Cell cell){
         int live = 0;
-        List<Cell> neighbors = checkNeighborsAll(cell);
+        List<Cell> neighbors = checkNeighbors(cell,false);
         for(Cell c : neighbors){
-            if(c.getState() == 1){
+            if(c.getContent().getState() == 1){
                 live++;
             }
         }
         return live;
     }
+
+	@Override
+	public void graphStats(Series<Number, Number> graphLocation) {
+		// TODO Auto-generated method stub
+		graphLocation.getData().add(new XYChart.Data(steps,populationSize));
+	}
 }
