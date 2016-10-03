@@ -1,6 +1,6 @@
-# Cellsociety 
+# cellsociety 
 
-Cell Society Project 
+Duke CompSci 308 Cell Society Project 
 
 # Team 3
 

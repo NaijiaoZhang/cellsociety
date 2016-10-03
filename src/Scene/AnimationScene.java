@@ -4,6 +4,7 @@ import java.util.ResourceBundle;
 
 import CellularAutomata.CellularAutomata;
 import CellularAutomata.FireRules;
+import CellularAutomata.ForagingAntsRules;
 import CellularAutomata.GameOfLifeRules;
 
 import CellularAutomata.PredatorPreyRules;
@@ -238,7 +239,10 @@ public class AnimationScene {
 		}else if(myAutomata instanceof SugarScapeRules){
 			lineChart.setTitle(myResources.getString("SugarScapeTitle"));
 			series.setName(myResources.getString("SugarScapeYAxisLabel"));
-		} else if (myAutomata instanceof PredatorPreyRules) {
+		} else if(myAutomata instanceof ForagingAntsRules){
+                    lineChart.setTitle(myResources.getString("ForagingAntsTitle"));
+                    series.setName(myResources.getString("ForagingAntsYAxisLabel"));
+		}else if (myAutomata instanceof PredatorPreyRules) {
 			lineChart.setTitle(myResources.getString("PredatorPreyTitle"));
 			series.setName(myResources.getString("PredatorPreyYAxisFishLabel"));
 			series2 = new XYChart.Series<>();

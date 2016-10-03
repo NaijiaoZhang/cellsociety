@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Cellular_automata CellType="SugarScape">
+	<TileType>Hexagonal</TileType>
+	<EdgeType>Finite</EdgeType>
+	<width>500</width>
+	<height>500</height>
+	<cells_row>50</cells_row>
+	<cells_column>50</cells_column>
+	<max_sugar>5</max_sugar>
+	<prob_agent>10</prob_agent>
+</Cellular_automata>

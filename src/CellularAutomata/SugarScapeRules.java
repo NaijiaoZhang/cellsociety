@@ -5,7 +5,9 @@ import java.util.Random;
 import java.util.TreeMap;
 
 import Cell.Cell;
+import Cell.HexagonalCell;
 import Cell.SquareCell;
+import Cell.TriangleCell;
 import CellContent.GameOfLifeContent;
 import CellContent.SugarScapeContent;
 import Models.Agent;
@@ -76,31 +78,6 @@ public class SugarScapeRules extends CellularAutomata {
 
 	}
 
-	@Override
-	public void createSquareGrid() {
-		// TODO Auto-generated method stub
-		int colorDivision = 255 / sugarMax;
-		Random r = new Random();
-		grid = new TreeMap<Integer, Cell>();
-		int w = width / colCount;
-		int h = height / rowCount;
-		for (int i = 0; i < rowCount; i++) {
-			for (int j = 0; j < colCount; j++) {
-				int k = i + j * rowCount;
-				int randNum = r.nextInt(sugarMax + 1);
-				int randNum2 = r.nextInt(101);
-				if (randNum2 > agentSpawnProb) {
-					grid.put(k, new SquareCell(i * w, j * h, i, j, new SugarScapeContent(-1,
-							Color.rgb(0, 255 - randNum * colorDivision, 255), randNum,randNum, colorDivision,1, null)));
-				} else {
-					grid.put(k, new SquareCell(i * w, j * h, i, j,
-							new SugarScapeContent(-1, agentColor, randNum,randNum, colorDivision, 1, new Agent(8, 2, 4))));
-					agentPopulation++;
-				}
-			}
-		}
-	}
-
 	private int decideMaxSugar(int vision, int leftBound, int rightBound, int topBound, int botBound, int i,Map<Integer, Cell> gridClone) {
 		int maxSugarKey = -1;
 		int maxSugar = -1;
@@ -148,16 +125,83 @@ public class SugarScapeRules extends CellularAutomata {
 		return i;
 
 	}
+	
+	@Override
+	public void createSquareGrid() {
+		// TODO Auto-generated method stub
+		int colorDivision = 255 / sugarMax;
+		Random r = new Random();
+		grid = new TreeMap<Integer, Cell>();
+		int w = width / colCount;
+		int h = height / rowCount;
+		for (int i = 0; i < rowCount; i++) {
+			for (int j = 0; j < colCount; j++) {
+				int k = i + j * rowCount;
+				int randNum = r.nextInt(sugarMax + 1);
+				int randNum2 = r.nextInt(101);
+				if (randNum2 > agentSpawnProb) {
+					grid.put(k, new SquareCell(i * w, j * h, i, j, new SugarScapeContent(-1,
+							Color.rgb(0, 255 - randNum * colorDivision, 255), randNum,randNum, colorDivision,1, null)));
+				} else {
+					grid.put(k, new SquareCell(i * w, j * h, i, j,
+							new SugarScapeContent(-1, agentColor, randNum,randNum, colorDivision, 1, new Agent(8, 2, 4))));
+					agentPopulation++;
+				}
+			}
+		}
+	}
 
 	@Override
 	public void createTriangleGrid() {
 		// TODO Auto-generated method stub
+		int colorDivision = 255 / sugarMax;
+		Random r = new Random();
+		grid = new TreeMap<Integer, Cell>();
+		int w = width / colCount;
+		int h = height / rowCount;
+		for (int i = 0; i < rowCount; i++) {
+			for (int j = 0; j < colCount; j++) {
+				int k = i + j * rowCount;
+				int randNum = r.nextInt(sugarMax + 1);
+				int randNum2 = r.nextInt(101);
+				if (randNum2 > agentSpawnProb) {
+					grid.put(k, new TriangleCell(i*w,j*h,w,h,i,j,new SugarScapeContent(-1,
+							Color.rgb(0, 255 - randNum * colorDivision, 255), randNum,randNum, colorDivision,1, null)));
+				} else {
+					grid.put(k, new TriangleCell(i*w, j*h,w,h, i, j,
+							new SugarScapeContent(-1, agentColor, randNum,randNum, colorDivision, 1, new Agent(8, 2, 4))));
+					agentPopulation++;
+				}
+			}
+		}
 
 	}
 
 	@Override
 	public void createHexagonalGrid() {
 		// TODO Auto-generated method stub
+		Random r = new Random();
+        grid = new TreeMap<Integer,Cell>();
+        double side = 0;
+        int colorDivision = 255 / sugarMax;
+    	if(rowCount%2==0&&colCount%2==0){
+    		side = height/(rowCount)/Math.sqrt(3);
+    	}
+    	for (int i = 0; i < rowCount; i++) {
+			for (int j = 0; j < colCount; j++) {
+				int k = i + j * rowCount;
+				int randNum = r.nextInt(sugarMax + 1);
+				int randNum2 = r.nextInt(101);
+				if (randNum2 > agentSpawnProb) {
+					grid.put(k, new HexagonalCell(i,j,side,new SugarScapeContent(-1,
+							Color.rgb(0, 255 - randNum * colorDivision, 255), randNum,randNum, colorDivision,1, null)));
+				} else {
+					grid.put(k, new HexagonalCell(i, j,side,
+							new SugarScapeContent(-1, agentColor, randNum,randNum, colorDivision, 1, new Agent(8, 2, 4))));
+					agentPopulation++;
+				}
+			}
+		}
 
 	}
 
